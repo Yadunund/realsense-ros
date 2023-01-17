@@ -17,6 +17,11 @@
 #include <tf2_ros/qos.hpp>
 #endif
 
+// Include cv::Mat type adapter if available.
+#ifdef USE_CV_MAT_TYPE_ADAPTER
+#include <cv_bridge/cv_mat_sensor_msgs_image_type_adapter.hpp>
+#endif
+
 using namespace realsense2_camera;
 
 SyncedImuPublisher::SyncedImuPublisher(rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher, 
@@ -1113,7 +1118,14 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const rclcpp::Time& t,
         }
         cam_info.header.stamp = t;
         info_publisher->publish(cam_info);
-
+        
+        #ifdef USE_CV_MAT_TYPE_ADAPTER
+        std_msgs::msg::Header header;
+        header.frame_id = OPTICAL_FRAME_ID(stream);
+        header.stamp = t;
+        cv_bridge::ROSCvMatContainer container(std::move(image), std::move(header));
+        image_publisher->publish(std::move(container));
+        #else
         // Prepare image topic to be published
         // We use UniquePtr for allow intra-process publish when subscribers of that type are available
         sensor_msgs::msg::Image::UniquePtr img(new sensor_msgs::msg::Image());
@@ -1137,8 +1149,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const rclcpp::Time& t,
         // Transfer the unique pointer ownership to the RMW
         sensor_msgs::msg::Image* msg_address = img.get();
         image_publisher->publish(std::move(img));
-
         ROS_DEBUG_STREAM(rs2_stream_to_string(f.get_profile().stream_type()) << " stream published, message address: " << std::hex << msg_address);
+        #endif
     }
     if (is_publishMetadata)
     {
