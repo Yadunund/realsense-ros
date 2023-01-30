@@ -26,10 +26,12 @@ class image_publisher
 public:
     // Use cv::Mat type adapter if available.
     #ifdef USE_CV_MAT_TYPE_ADAPTER
-    virtual void publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr) = 0;
+    using ImgMsg = cv_bridge::ROSCvMatContainer;
     #else
-    virtual void publish( sensor_msgs::msg::Image::UniquePtr image_ptr ) = 0;
+    using ImgMsg = sensor_msgs::msg::Image;
     #endif
+
+    virtual void publish( std::unique_ptr< ImgMsg > image_ptr ) = 0;
     virtual size_t get_subscription_count() const = 0;
     virtual ~image_publisher() = default;
 };
@@ -41,21 +43,11 @@ public:
     image_rcl_publisher( rclcpp::Node & node,
                          const std::string & topic_name,
                          const rmw_qos_profile_t & qos );
-    // Use cv::Mat type adapter if available.
-    #ifdef USE_CV_MAT_TYPE_ADAPTER
-    void publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr) override;
-    #else
-    void publish( sensor_msgs::msg::Image::UniquePtr image_ptr ) override;
-    #endif                         
+    void publish( std::unique_ptr< ImgMsg > image_ptr ) override;
     size_t get_subscription_count() const override;
 
 private:
-    // Use cv::Mat type adapter if available.
-    #ifdef USE_CV_MAT_TYPE_ADAPTER
-    rclcpp::Publisher< cv_bridge::ROSCvMatContainer >::SharedPtr image_publisher_impl;
-    #else
-    rclcpp::Publisher< sensor_msgs::msg::Image >::SharedPtr image_publisher_impl;
-    #endif     
+    rclcpp::Publisher< ImgMsg >::SharedPtr image_publisher_impl;
 };
 
 // image_transport implementation of an image publisher (adds a compressed image topic)
@@ -66,17 +58,13 @@ public:
                                const std::string & topic_name,
                                const rmw_qos_profile_t & qos );
     // Use cv::Mat type adapter if available.
-    #ifdef USE_CV_MAT_TYPE_ADAPTER
-    void publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr) override;
-    #else
-    void publish( sensor_msgs::msg::Image::UniquePtr image_ptr ) override;
-    #endif                                    
+    void publish( std::unique_ptr< ImgMsg > image_ptr ) override;
     size_t get_subscription_count() const override;
 
 private:
-    // Use cv::Mat type adapter if available.
+    // image_transport::Publisher does not support type adaptation.
     #ifdef USE_CV_MAT_TYPE_ADAPTER
-    rclcpp::Publisher< cv_bridge::ROSCvMatContainer >::SharedPtr image_publisher_impl;
+    rclcpp::Publisher< ImgMsg >::SharedPtr image_publisher_impl;
     #else
     std::shared_ptr< image_transport::Publisher > image_publisher_impl;
     #endif   

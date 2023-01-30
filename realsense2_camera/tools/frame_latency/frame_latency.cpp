@@ -28,33 +28,27 @@ FrameLatencyNode::FrameLatencyNode( const rclcpp::NodeOptions & node_options )
     ROS_INFO_STREAM( "Intra-Process is "
                      << ( this->get_node_options().use_intra_process_comms() ? "ON" : "OFF" ) );
     // Create a subscription on the input topic.
-    #ifdef USE_CV_MAT_TYPE_ADAPTER
-    _sub = this->create_subscription< cv_bridge::ROSCvMatContainer >(
+    _sub = this->create_subscription< ImgMsg >(
         "/color/image_raw",  // TODO Currently color only, we can declare and accept the required
                              // streams as ros parameters
         rclcpp::QoS( rclcpp::QoSInitialization::from_rmw( rmw_qos_profile_default ),
                      rmw_qos_profile_default ),
-        [&, this](std::unique_ptr< const cv_bridge::ROSCvMatContainer> msg ) {
-            rclcpp::Time curr_time = this->get_clock()->now();
-            auto latency = ( curr_time - msg->header().stamp ).seconds();
-            ROS_INFO_STREAM( "Got type adapted msg with address 0x"
-                             << std::hex << reinterpret_cast< std::uintptr_t >( msg.get() )
-                             << std::dec << " with latency of " << latency << " [sec]" );
-        } );    
-    #else
-    _sub = this->create_subscription< sensor_msgs::msg::Image >(
-        "/color/image_raw",  // TODO Currently color only, we can declare and accept the required
-                             // streams as ros parameters
-        rclcpp::QoS( rclcpp::QoSInitialization::from_rmw( rmw_qos_profile_default ),
-                     rmw_qos_profile_default ),
-        [&, this]( const sensor_msgs::msg::Image::SharedPtr msg ) {
+        [&, this]( std::shared_ptr<const ImgMsg > msg) {
             rclcpp::Time curr_time = this->get_clock()->now();
             auto latency = ( curr_time - msg->header.stamp ).seconds();
+            // Access cv::Mat
+            #ifdef USE_CV_MAT_TYPE_ADAPTER
+            const cv::Mat& mat = msg->cv_mat();
+            #else
+            const auto cv_image = cv_bridge::toCvShare(msg);
+            const cv::Mat& mat = cv_image->image;       
+            #endif   
             ROS_INFO_STREAM( "Got msg with address 0x"
                              << std::hex << reinterpret_cast< std::uintptr_t >( msg.get() )
-                             << std::dec << " with latency of " << latency << " [sec]" );
+                             << std::dec << " with latency of " << latency << " [sec]."
+                             << " cv::Mat size: ["
+                             << mat.rows << " x " << mat.cols << "]" );
         } );
-    #endif
 }
 
 #include "rclcpp_components/register_node_macro.hpp"

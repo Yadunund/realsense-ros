@@ -30,10 +30,12 @@ public:
 
 private:
     #ifdef USE_CV_MAT_TYPE_ADAPTER
-    rclcpp::Subscription< cv_bridge::ROSCvMatContainer >::SharedPtr _sub;
+    using ImgMsg = cv_bridge::ROSCvMatContainer;
     #else
-    rclcpp::Subscription< sensor_msgs::msg::Image >::SharedPtr _sub;
+    using ImgMsg = sensor_msgs::msg::Image;
     #endif
+    
+    rclcpp::Subscription< ImgMsg >::SharedPtr _sub;
     rclcpp::Logger _logger;
 };
 }  // namespace frame_latency
