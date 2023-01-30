@@ -6,6 +6,13 @@
 #include <rclcpp/rclcpp.hpp>
 #include "sensor_msgs/msg/image.hpp"
 
+#ifdef USE_CV_MAT_TYPE_ADAPTER
+#include <cv_bridge/cv_mat_sensor_msgs_image_type_adapter.hpp>
+RCLCPP_USING_CUSTOM_TYPE_AS_ROS_MESSAGE_TYPE(
+  cv_bridge::ROSCvMatContainer,
+  sensor_msgs::msg::Image);
+#endif
+
 namespace rs2_ros {
 namespace tools {
 namespace frame_latency {
@@ -21,7 +28,11 @@ public:
                       = rclcpp::NodeOptions().use_intra_process_comms( true ) );
 
 private:
+    #ifdef USE_CV_MAT_TYPE_ADAPTER
+    rclcpp::Subscription< cv_bridge::ROSCvMatContainer >::SharedPtr _sub;
+    #else
     rclcpp::Subscription< sensor_msgs::msg::Image >::SharedPtr _sub;
+    #endif
     rclcpp::Logger _logger;
 };
 }  // namespace frame_latency
