@@ -35,13 +35,14 @@ FrameLatencyNode::FrameLatencyNode( const rclcpp::NodeOptions & node_options )
                      rmw_qos_profile_default ),
         [&, this]( std::shared_ptr<const ImgMsg > msg) {
             rclcpp::Time curr_time = this->get_clock()->now();
-            auto latency = ( curr_time - msg->header.stamp ).seconds();
             // Access cv::Mat
             #ifdef USE_CV_MAT_TYPE_ADAPTER
             const cv::Mat& mat = msg->cv_mat();
+            auto latency = ( curr_time - msg->header().stamp ).seconds();
             #else
             const auto cv_image = cv_bridge::toCvShare(msg);
-            const cv::Mat& mat = cv_image->image;       
+            const cv::Mat& mat = cv_image->image;
+            auto latency = ( curr_time - msg->header.stamp ).seconds();  
             #endif   
             ROS_INFO_STREAM( "Got msg with address 0x"
                              << std::hex << reinterpret_cast< std::uintptr_t >( msg.get() )
