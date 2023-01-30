@@ -1123,8 +1123,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const rclcpp::Time& t,
         std_msgs::msg::Header header;
         header.frame_id = OPTICAL_FRAME_ID(stream);
         header.stamp = t;
-        cv_bridge::ROSCvMatContainer container(std::move(image), std::move(header));
-        image_publisher->publish(std::move(container));
+        auto img = std::make_unique<cv_bridge::ROSCvMatContainer>(std::move(image), std::move(header));
+        image_publisher->publish(std::move(img));
         #else
         // Prepare image topic to be published
         // We use UniquePtr for allow intra-process publish when subscribers of that type are available

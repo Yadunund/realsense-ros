@@ -151,15 +151,16 @@ elseif("$ENV{ROS_DISTRO}" STREQUAL "galactic")
   set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
 elseif("$ENV{ROS_DISTRO}" STREQUAL "humble")
   message(STATUS "Build for ROS2 Humble")
-  # todo(YV): Remove DUSE_CV_MAT_TYPE_ADAPTER before merging.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHUMBLE -DUSE_CV_MAT_TYPE_ADAPTER")
   set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
 elseif("$ENV{ROS_DISTRO}" STREQUAL "rolling")
   message(STATUS "Build for ROS2 Rolling")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DROLLING -DUSE_CV_MAT_TYPE_ADAPTER")
   set(SOURCES "${SOURCES}" src/ros_param_backend_rolling.cpp)
 else()
   message(FATAL_ERROR "Unsupported ROS Distribution: " "$ENV{ROS_DISTRO}")
+endif()
+# Add a flag to support type adaptation publishers.
+if("$ENV{USE_CV_MAT_TYPE_ADAPTER}" STREQUAL "true")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHUMBLE -DUSE_CV_MAT_TYPE_ADAPTER")
 endif()
 
 set(INCLUDES

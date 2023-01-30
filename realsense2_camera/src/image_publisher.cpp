@@ -22,9 +22,9 @@ image_rcl_publisher::image_rcl_publisher( rclcpp::Node & node,
 }
 
 #ifdef USE_CV_MAT_TYPE_ADAPTER
-void image_rcl_publisher::publish(cv_bridge::ROSCvMatContainer&& container)
+void image_rcl_publisher::publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr)
 {
-    image_publisher_impl->publish(std::move(container));
+    image_publisher_impl->publish(std::move(image_ptr));
 }
 #else
 void image_rcl_publisher::publish( sensor_msgs::msg::Image::UniquePtr image_ptr )
@@ -54,9 +54,9 @@ image_transport_publisher::image_transport_publisher( rclcpp::Node & node,
 }
 
 #ifdef USE_CV_MAT_TYPE_ADAPTER
-void image_transport_publisher::publish(cv_bridge::ROSCvMatContainer&& container)
+void image_transport_publisher::publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr)
 {
-    image_publisher_impl->publish( std::move(container) );
+    image_publisher_impl->publish( std::move(image_ptr) );
 }
 #else
 void image_transport_publisher::publish( sensor_msgs::msg::Image::UniquePtr image_ptr )

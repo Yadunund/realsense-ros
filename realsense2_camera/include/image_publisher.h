@@ -26,7 +26,7 @@ class image_publisher
 public:
     // Use cv::Mat type adapter if available.
     #ifdef USE_CV_MAT_TYPE_ADAPTER
-    virtual void publish(cv_bridge::ROSCvMatContainer&& container) = 0;
+    virtual void publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr) = 0;
     #else
     virtual void publish( sensor_msgs::msg::Image::UniquePtr image_ptr ) = 0;
     #endif
@@ -43,7 +43,7 @@ public:
                          const rmw_qos_profile_t & qos );
     // Use cv::Mat type adapter if available.
     #ifdef USE_CV_MAT_TYPE_ADAPTER
-    void publish(cv_bridge::ROSCvMatContainer&& container) override;
+    void publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr) override;
     #else
     void publish( sensor_msgs::msg::Image::UniquePtr image_ptr ) override;
     #endif                         
@@ -67,7 +67,7 @@ public:
                                const rmw_qos_profile_t & qos );
     // Use cv::Mat type adapter if available.
     #ifdef USE_CV_MAT_TYPE_ADAPTER
-    void publish(cv_bridge::ROSCvMatContainer&& container) override;
+    void publish(std::unique_ptr<cv_bridge::ROSCvMatContainer> image_ptr) override;
     #else
     void publish( sensor_msgs::msg::Image::UniquePtr image_ptr ) override;
     #endif                                    
