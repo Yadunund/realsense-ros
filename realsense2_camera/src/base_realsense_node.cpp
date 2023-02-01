@@ -1123,7 +1123,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const rclcpp::Time& t,
         std_msgs::msg::Header header;
         header.frame_id = OPTICAL_FRAME_ID(stream);
         header.stamp = t;
-        auto img = std::make_unique<cv_bridge::ROSCvMatContainer>(std::move(image), std::move(header));
+        // TODO(YV): Requires https://github.com/Yadunund/vision_opencv/tree/yadu/custom_encoding_for_ROSCvMatContainer
+        auto img = std::make_unique<cv_bridge::ROSCvMatContainer>(std::move(image), std::move(header), false, _encoding.at(bpp));
         image_publisher->publish(std::move(img));
         #else
         // Prepare image topic to be published
