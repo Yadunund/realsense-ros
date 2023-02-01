@@ -160,6 +160,11 @@ elseif("$ENV{ROS_DISTRO}" STREQUAL "rolling")
 else()
   message(FATAL_ERROR "Unsupported ROS Distribution: " "$ENV{ROS_DISTRO}")
 endif()
+# Add a flag to support type adaptation publishers.
+if("$ENV{USE_CV_MAT_TYPE_ADAPTER}" STREQUAL "true")
+  message(STATUS "Build with support for cv::Mat Type Adapter")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_CV_MAT_TYPE_ADAPTER")
+endif()
 
 set(INCLUDES
     include/constants.h

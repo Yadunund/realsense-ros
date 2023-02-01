@@ -10,16 +10,16 @@ image_rcl_publisher::image_rcl_publisher( rclcpp::Node & node,
                                           const std::string & topic_name,
                                           const rmw_qos_profile_t & qos )
 {
-    image_publisher_impl = node.create_publisher< sensor_msgs::msg::Image >(
+    image_publisher_impl = node.create_publisher< ImgMsg >(
         topic_name,
-        rclcpp::QoS( rclcpp::QoSInitialization::from_rmw( qos ), qos ) );
+        rclcpp::QoS( rclcpp::QoSInitialization::from_rmw( qos ), qos ) );    
 }
 
-void image_rcl_publisher::publish( sensor_msgs::msg::Image::UniquePtr image_ptr )
+void image_rcl_publisher::publish(std::unique_ptr< ImgMsg > image_ptr)
 {
-    image_publisher_impl->publish( std::move( image_ptr ) );
-}
-
+    image_publisher_impl->publish(std::move(image_ptr));
+}   
+    
 size_t image_rcl_publisher::get_subscription_count() const
 {
     return image_publisher_impl->get_subscription_count();
@@ -30,15 +30,31 @@ image_transport_publisher::image_transport_publisher( rclcpp::Node & node,
                                                       const std::string & topic_name,
                                                       const rmw_qos_profile_t & qos )
 {
+    #ifdef USE_CV_MAT_TYPE_ADAPTER
+    image_publisher_impl = node.create_publisher< ImgMsg >(
+        topic_name,
+        rclcpp::QoS( rclcpp::QoSInitialization::from_rmw( qos ), qos ) );    
+    #else    
     image_publisher_impl = std::make_shared< image_transport::Publisher >(
         image_transport::create_publisher( &node, topic_name, qos ) );
+    #endif
 }
-void image_transport_publisher::publish( sensor_msgs::msg::Image::UniquePtr image_ptr )
+
+void image_transport_publisher::publish( std::unique_ptr< ImgMsg > image_ptr )
 {
+    #ifdef USE_CV_MAT_TYPE_ADAPTER
+    image_publisher_impl->publish( std::move(image_ptr) );
+    #else
     image_publisher_impl->publish( *image_ptr );
+    #endif
 }
+
 
 size_t image_transport_publisher::get_subscription_count() const
 {
+    #ifdef USE_CV_MAT_TYPE_ADAPTER
+    return image_publisher_impl->get_subscription_count();
+    #else
     return image_publisher_impl->getNumSubscribers();
+    #endif
 }
